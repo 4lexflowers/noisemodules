@@ -1,12 +1,15 @@
 var params = {
-	scalex: Math.floor(Math.random()*10),
-    scaley: Math.floor(Math.random()*10),
-    speed: Math.floor(Math.random()*10),
-	spacing: Math.floor(Math.random()*40)
+	scalex: Math.floor(Math.random()*29+1),
+    scaley: Math.floor(Math.random()*29+1),
+    speed: Math.floor(Math.random()*29+1),
+	spacing: 0,
+    zoom: Math.floor(Math.random()*40+2),
+    amountX: Math.floor(Math.random()*40+2),
+    amountY: Math.floor(Math.random()*40+2)
 }
 
 var modes = [{type: "mix", amount: 6}, {type: "squares", amount: 6}, {type: "stripes", amount: 6}, {type: "triangles", amount: 8}, {type: "circles", amount: 4}];
-var mode = Math.random(modes);
+var mode = modes[Math.random()*modes.length];
 var seed = 0;
 var bgcolor = '#111';
 
@@ -31,18 +34,20 @@ const type = pane.addBlade({
 
 const sketch = (p) => {
     p.setup = () => {
-        var w = p.min(p.windowWidth, p.windowHeight)
-        p.createCanvas(w, w);
-        params.spacing = w/params.spacing;
+        p.createCanvas(p.windowWidth, p.windowHeight);
         seed = p.random(1000);
         p.noiseSeed(seed);
         pane.addBinding( params, 'scalex', { min: 1, max: 30 });
         pane.addBinding( params, 'scaley', { min: 1, max: 30 });
         pane.addBinding( params, 'speed', { min: 1, max: 30 });
-        pane.addBinding( params, 'spacing', { min: 15, max: 30, step: 1 });
+        pane.addBinding( params, 'zoom', { min: 2, max: 50, step: 1 });
+        pane.addBinding( params, 'amountX', { min: 2, max: 50, step: 1 });
+        pane.addBinding( params, 'amountY', { min: 2, max: 50, step: 1 });
+        type.value = p.random(modes);
     };
 
     p.draw = () => {
+        params.spacing = p.width/params.zoom;
         mode = type.value;
         p.background(param.bgColor);
         create();
@@ -50,8 +55,11 @@ const sketch = (p) => {
     
     const create = () => {
         p.background(bgcolor);
-        for(var i = 0; i < p.width/params.spacing; i++) {
-            for(var j = 0; j < p.height/params.spacing; j++) {
+        var leftMargin = (p.width - params.amountX * params.spacing) / 2;
+        var rightMargin = (p.height - params.amountY * params.spacing) / 2;
+        p.translate(leftMargin, rightMargin);
+        for(var i = 0; i < params.amountX; i++) {
+            for(var j = 0; j < params.amountY; j++) {
                 var n = p.noise(i / params.scalex, j / params.scaley, p.frameCount/1000*params.speed);
                 show(i * params.spacing, j * params.spacing, params.spacing, p.round(n/(1/mode.amount)));
             }
